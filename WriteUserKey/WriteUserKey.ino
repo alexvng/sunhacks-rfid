@@ -10,6 +10,8 @@ MFRC522 mfrc522(SS_PIN, RST_PIN); // orange, white
 MFRC522::MIFARE_Key key; // set by factory
 MFRC522::StatusCode status; // checks for failed operations
 
+byte dataBlock[16];
+
 void setup() {
   Serial.begin(9600);
   SPI.begin();
@@ -19,6 +21,10 @@ void setup() {
   // default FF FF FF FF FF FF
   for (byte i = 0; i < 6; i++) {
     key.keyByte[i] = 0xFF;
+  }
+
+  for (int i = 0; i < sizeof(dataBlock); i++) {
+    dataBlock[i] = (byte) random(255);
   }
 }
 
@@ -39,12 +45,6 @@ void loop() {
   byte blockAddress = 1;
   byte buffer[18]; // 18, even though a data block is 16 long?
   byte size = sizeof(buffer); // used as a counter variable
-  byte dataBlock[] = {
-    0x01, 0x02, 0x00, 0x00,
-    0x01, 0x02, 0x00, 0x00,
-    0x01, 0x02, 0x00, 0x00,
-    0x01, 0x02, 0x00, 0x00,
-  };
 
   status = (MFRC522::StatusCode) mfrc522.PCD_Authenticate(
              MFRC522::PICC_CMD_MF_AUTH_KEY_A,
@@ -113,6 +113,10 @@ void loop() {
   mfrc522.PICC_HaltA();
   mfrc522.PCD_StopCrypto1();
   Serial.println();
+
+  for (int i = 0; i < sizeof(dataBlock); i++) {
+    dataBlock[i] = (byte) random(255);
+  }
 
 }
 
