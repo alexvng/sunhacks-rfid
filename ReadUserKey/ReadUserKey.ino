@@ -48,7 +48,7 @@ void loop() {
     return;
   }
 
-  /* REMEMBER: NO CODE BELOW RUNS UNLESS NEW CARD IS PRESENT */
+  /* REMEMBER: NO CODE BELOW RUNS UNLESS UNREAD CARD IS PRESENT */
 
   byte blockAddress = 1;
   byte buffer[18]; // 18, even though a data block is 16 long?
@@ -84,8 +84,8 @@ void loop() {
 
   EEPROM.write(256, EEPROM.read(256) + 1);
 
-  for (int i = 0; i < 15; i++) {
-    EEPROM.write(16*(EEPROM.read(0)-1) + 1 + i, buffer[i]);
+  for (int i = 0; i < 16; i++) {
+    EEPROM.write(16*(EEPROM.read(256)-1) + i, buffer[i]);
   }
 
   for (int i = 0; i < 256; i++) {
