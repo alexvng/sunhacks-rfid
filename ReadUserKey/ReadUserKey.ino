@@ -32,7 +32,7 @@ void loop() {
 
   if (digitalRead(BUTTON) == HIGH) {
     Serial.println("Resetting internal storage...");
-    for (int i = 0; i < 255; i++) {
+    for (int i = 0; i < 260; i++) { // just in case of minor overflow
       EEPROM.write(i, 0);
     }
     Serial.println("Finished! Ready to use!");
@@ -82,17 +82,18 @@ void loop() {
 
   /* Write to EEPROM */
 
-  Serial.println(EEPROM.read(0));
-  EEPROM.write(0, EEPROM.read(0) + 1);
-  Serial.println(EEPROM.read(0));
+  EEPROM.write(256, EEPROM.read(256) + 1);
 
   for (int i = 0; i < 15; i++) {
     EEPROM.write(16*(EEPROM.read(0)-1) + 1 + i, buffer[i]);
   }
 
-  for (int i = 0; i < 255; i++) {
-    Serial.print(EEPROM.read(i));
+  for (int i = 0; i < 256; i++) {
+    Serial.print((byte)EEPROM.read(i));
     Serial.print(" ");
+    if ((i+1) % 16 == 0) {
+      Serial.println();
+    }
   }
 
   mfrc522.PICC_HaltA();
