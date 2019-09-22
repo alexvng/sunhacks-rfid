@@ -6,6 +6,8 @@
 constexpr uint8_t SS_PIN = 10;
 constexpr uint8_t RST_PIN = 9;
 
+const int BUTTON = 7;
+
 MFRC522 mfrc522(SS_PIN, RST_PIN); // orange, white
 
 MFRC522::MIFARE_Key key; // set by factory
@@ -15,15 +17,26 @@ void setup() {
   Serial.begin(9600);
   SPI.begin();
   mfrc522.PCD_Init();
+  pinMode(BUTTON, INPUT);
 
   // required to authenticate data gathering
   // default FF FF FF FF FF FF
   for (byte i = 0; i < 6; i++) {
     key.keyByte[i] = 0xFF;
   }
+
+  Serial.println("Ready to use!");
 }
 
 void loop() {
+
+  if (digitalRead(BUTTON) == HIGH) {
+    Serial.println("Resetting internal storage...");
+    for (int i = 0; i < 255; i++) {
+      EEPROM.write(i, 0);
+    }
+    Serial.println("Finished! Ready to use!");
+  }
 
   // breaks loop if no card present
   if ( ! mfrc522.PICC_IsNewCardPresent()) {
