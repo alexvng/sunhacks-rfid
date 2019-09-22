@@ -5,17 +5,39 @@
 constexpr uint8_t SS_PIN = 10;
 constexpr uint8_t RST_PIN = 9;
 
+const int Bt4 = 3;
+const int Bt3 = 4;
+const int Bt2 = 5;
+const int Bt1 = 6;
+const int Bt0 = 7;
+
+const char user0[16] = "ehfxrxnubluvrsvx";
+const char user1[16] = "awhgzmmticgesttp";
+const char user2[16] = "xfctpqcdpssssgqx";
+const char user3[16] = "zrlaomqssoiensbc";
+const char user4[16] = "fqerjbwupdegfwxf";
+
+char dataBlock[16];
+
+int whichUser;
+
 MFRC522 mfrc522(SS_PIN, RST_PIN); // orange, white
 
 MFRC522::MIFARE_Key key; // set by factory
 MFRC522::StatusCode status; // checks for failed operations
 
-byte dataBlock[16];
-
 void setup() {
   Serial.begin(9600);
   SPI.begin();
   mfrc522.PCD_Init();
+
+  pinMode(Bt4, INPUT);
+  pinMode(Bt3, INPUT);
+  pinMode(Bt2, INPUT);
+  pinMode(Bt1, INPUT);
+  pinMode(Bt0, INPUT);
+
+  whichUser = 0;
 
   // required to authenticate data gathering
   // default FF FF FF FF FF FF
@@ -23,12 +45,38 @@ void setup() {
     key.keyByte[i] = 0xFF;
   }
 
-  for (int i = 0; i < sizeof(dataBlock); i++) {
-    dataBlock[i] = (byte) random(255);
+  for (int i = 0; i < 16; i++) {
+    dataBlock[i] = user0[i];
   }
+
+  Serial.println("Ready to use!");
 }
 
 void loop() {
+
+  trackLastButtonPressed();
+
+  if (whichUser == 0) {
+    for (int i = 0; i < 16; i++) {
+      dataBlock[i] = user0[i];
+    }
+  } else if (whichUser == 1) {
+    for (int i = 0; i < 16; i++) {
+      dataBlock[i] = user1[i];
+    }
+  } else if (whichUser == 2) {
+    for (int i = 0; i < 16; i++) {
+      dataBlock[i] = user2[i];
+    }
+  } else if (whichUser == 3) {
+    for (int i = 0; i < 16; i++) {
+      dataBlock[i] = user3[i];
+    }
+  } else if (whichUser == 4) {
+    for (int i = 0; i < 16; i++) {
+      dataBlock[i] = user4[i];
+    }
+  }
 
   // breaks loop if no card present
   if ( ! mfrc522.PICC_IsNewCardPresent()) {
@@ -114,10 +162,6 @@ void loop() {
   mfrc522.PCD_StopCrypto1();
   Serial.println();
 
-  for (int i = 0; i < sizeof(dataBlock); i++) {
-    dataBlock[i] = (byte) random(255);
-  }
-
 }
 
 // reads out bytes spaced nicely
@@ -125,5 +169,19 @@ void dump_byte_array(byte *buffer, byte bufferSize) {
   for (byte i = 0; i < bufferSize; i++) {
     Serial.print(buffer[i] < 0x10 ? " 0" : " ");
     Serial.print(buffer[i], HEX);
+  }
+}
+
+void trackLastButtonPressed() {
+  if (digitalRead(Bt0) == HIGH) {
+    whichUser = 0;
+  } else if (digitalRead(Bt1) == HIGH) {
+    whichUser = 1;
+  } else if (digitalRead(Bt2) == HIGH) {
+    whichUser = 2;
+  } else if (digitalRead(Bt3) == HIGH) {
+    whichUser = 3;
+  } else if (digitalRead(Bt4) == HIGH) {
+    whichUser = 4;
   }
 }
