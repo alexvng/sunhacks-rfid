@@ -6,7 +6,8 @@
 constexpr uint8_t SS_PIN = 10;
 constexpr uint8_t RST_PIN = 9;
 
-const int BUTTON = 7;
+const int RESETBUTTON = 6;
+const int UPLOADBUTTON = 7;
 
 MFRC522 mfrc522(SS_PIN, RST_PIN); // orange, white
 
@@ -17,7 +18,8 @@ void setup() {
   Serial.begin(9600);
   SPI.begin();
   mfrc522.PCD_Init();
-  pinMode(BUTTON, INPUT);
+  pinMode(RESETBUTTON, INPUT);
+  pinMode(UPLOADBUTTON, INPUT);
 
   // required to authenticate data gathering
   // default FF FF FF FF FF FF
@@ -30,12 +32,23 @@ void setup() {
 
 void loop() {
 
-  if (digitalRead(BUTTON) == HIGH) {
+  if (digitalRead(RESETBUTTON) == HIGH) {
     Serial.println("Resetting internal storage...");
     for (int i = 0; i < 260; i++) { // just in case of minor overflow
       EEPROM.write(i, 0);
     }
     Serial.println("Finished! Ready to use!");
+  }
+
+  if (digitalRead(UPLOADBUTTON) == HIGH) {
+    Serial.print("#");
+    for (int i = 0; i < EEPROM.read(256); i++) {
+      for (int j = 0; j < 16; j++) {
+        Serial.print(EEPROM.read((i*16)+j));
+        Serial.print(" ");
+      }
+    }
+    Serial.print("@");
   }
 
   // breaks loop if no card present
@@ -82,7 +95,9 @@ void loop() {
 
   /* Write to EEPROM */
 
-  EEPROM.write(256, EEPROM.read(256) + 1);
+  EEPROM.write(256, min((EEPROM.read(256) + 1), 16));
+  Serial.print("Slots filled: ");
+  Serial.println(EEPROM.read(256));
 
   for (int i = 0; i < 16; i++) {
     EEPROM.write(16*(EEPROM.read(256)-1) + i, buffer[i]);
