@@ -1,5 +1,6 @@
 #include <SPI.h>
 #include <MFRC522.h>
+#include <EEPROM.h>
 
 // pin constants required for board to send data
 constexpr uint8_t SS_PIN = 10;
@@ -39,12 +40,6 @@ void loop() {
   byte blockAddress = 1;
   byte buffer[18]; // 18, even though a data block is 16 long?
   byte size = sizeof(buffer); // used as a counter variable
-  byte dataBlock[] = {
-    0x01, 0x02, 0x00, 0x00,
-    0x01, 0x02, 0x00, 0x00,
-    0x01, 0x02, 0x00, 0x00,
-    0x01, 0x02, 0x00, 0x00,
-  };
 
   status = (MFRC522::StatusCode) mfrc522.PCD_Authenticate(
              MFRC522::PICC_CMD_MF_AUTH_KEY_A,
@@ -68,47 +63,24 @@ void loop() {
     Serial.println(mfrc522.GetStatusCodeName(status));
   }
 
-  Serial.print("Original data: ");
+  Serial.print("Tag scanned: ");
   dump_byte_array(buffer, 16);
   Serial.println();
 
-  /* Write Procedure */
+  /* Write to EEPROM */
 
-  status = (MFRC522::StatusCode) mfrc522.PCD_Authenticate(
-             MFRC522::PICC_CMD_MF_AUTH_KEY_B,
-             blockAddress, // block being read (0-15)
-             &key, // auth key A
-             & (mfrc522.uid)); // pointer to rfid data
+  Serial.println(EEPROM.read(0));
+  EEPROM.write(0, EEPROM.read(0) + 1);
+  Serial.println(EEPROM.read(0));
 
-  if (status != MFRC522::STATUS_OK) {
-    Serial.print("Operation failed #3: ");
-    Serial.println(mfrc522.GetStatusCodeName(status));
-    return;
+  for (int i = 0; i < 15; i++) {
+    EEPROM.write(16*(EEPROM.read(0)-1) + 1 + i, buffer[i]);
   }
 
-  status = (MFRC522::StatusCode) mfrc522.MIFARE_Write(
-             blockAddress,
-             dataBlock,
-             16);
-
-  if (status != MFRC522::STATUS_OK) {
-    Serial.print("Operation failed #4: ");
-    Serial.println(mfrc522.GetStatusCodeName(status));
+  for (int i = 0; i < 255; i++) {
+    Serial.print(EEPROM.read(i));
+    Serial.print(" ");
   }
-
-  status = (MFRC522::StatusCode) mfrc522.MIFARE_Read(
-             blockAddress, // block being read (0-15)
-             buffer, // variable where data is sent
-             &size); // how far to go
-
-  if (status != MFRC522::STATUS_OK) {
-    Serial.print("Operation failed #5: ");
-    Serial.println(mfrc522.GetStatusCodeName(status));
-  }
-
-  Serial.print("Final output:  ");
-  dump_byte_array(buffer, 16);
-  Serial.println();
 
   mfrc522.PICC_HaltA();
   mfrc522.PCD_StopCrypto1();
