@@ -36,6 +36,7 @@ void loop() {
 
   /* REMEMBER: NO CODE BELOW RUNS UNLESS NEW CARD IS PRESENT */
 
+  byte blockAddress = 1;
   byte buffer[18]; // 18, even though a data block is 16 long?
   byte size = sizeof(buffer); // used as a counter variable
   byte dataBlock[] = {
@@ -47,7 +48,7 @@ void loop() {
 
   status = (MFRC522::StatusCode) mfrc522.PCD_Authenticate(
              MFRC522::PICC_CMD_MF_AUTH_KEY_A,
-             1, // block being read (0-15)
+             blockAddress, // block being read (0-15)
              &key, // auth key A
              & (mfrc522.uid)); // pointer to rfid data
 
@@ -58,7 +59,7 @@ void loop() {
   }
 
   status = (MFRC522::StatusCode) mfrc522.MIFARE_Read(
-             1, // block being read (0-15)
+             blockAddress, // block being read (0-15)
              buffer, // variable where data is sent
              &size); // how far to go
 
@@ -74,8 +75,8 @@ void loop() {
   /* Write Procedure */
 
   status = (MFRC522::StatusCode) mfrc522.PCD_Authenticate(
-             MFRC522::PICC_CMD_MF_AUTH_KEY_A,
-             1, // block being read (0-15)
+             MFRC522::PICC_CMD_MF_AUTH_KEY_B,
+             blockAddress, // block being read (0-15)
              &key, // auth key A
              & (mfrc522.uid)); // pointer to rfid data
 
@@ -86,7 +87,7 @@ void loop() {
   }
 
   status = (MFRC522::StatusCode) mfrc522.MIFARE_Write(
-             1,
+             blockAddress,
              dataBlock,
              16);
 
@@ -96,7 +97,7 @@ void loop() {
   }
 
   status = (MFRC522::StatusCode) mfrc522.MIFARE_Read(
-             1, // block being read (0-15)
+             blockAddress, // block being read (0-15)
              buffer, // variable where data is sent
              &size); // how far to go
 
